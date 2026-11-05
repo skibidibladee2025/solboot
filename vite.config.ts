@@ -2,7 +2,8 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   root: '.',
-  publicDir: 'src',
+  publicDir: 'public',
+  base: '/solboot/',
   build: {
     outDir: 'dist',
     emptyOutDir: true,

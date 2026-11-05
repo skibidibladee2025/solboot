@@ -4,14 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>solboot</title>
-  <link rel="icon" type="image/jpeg" href="/src/logo.jpg" />
-  <link rel="manifest" href="/src/manifest.json" />
+  <link rel="icon" type="image/jpeg" href="/logo.jpg" />
+  <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#0f8f35" />
   <script type="module" src="/src/main.ts"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/src/sw.ts').catch(() => {
+        navigator.serviceWorker.register('./sw.ts').catch(() => {
           // SW registration failed, app still works without it
         });
       });
@@ -21,7 +21,7 @@
 <body>
 <main id="config" class="view" role="main">
   <header>
-    <img class="logo" src="/src/logo.jpg" width="336" height="280" alt="solboot: boot any OS, right in your browser" />
+    <img class="logo" src="/logo.jpg" width="336" height="280" alt="solboot: boot any OS, right in your browser" />
     <h1 class="sr">solboot</h1>
     <p class="mute">Disk images never leave your device.</p>
   </header>
