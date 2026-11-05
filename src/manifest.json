@@ -1,0 +1,26 @@
+{
+  "name": "solboot",
+  "short_name": "solboot",
+  "description": "Boot any x86 OS right in your browser",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#0f8f35",
+  "orientation": "landscape-primary",
+  "icons": [
+    {
+      "src": "/src/logo.jpg",
+      "sizes": "336x280",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["developer", "utilities"],
+  "shortcuts": [
+    {
+      "name": "New VM",
+      "url": "/",
+      "description": "Create a new virtual machine"
+    }
+  ]
+}

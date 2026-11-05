@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>solboot</title>
+  <link rel="icon" type="image/jpeg" href="/src/logo.jpg" />
+  <link rel="manifest" href="/src/manifest.json" />
+  <meta name="theme-color" content="#0f8f35" />
+  <script type="module" src="/src/main.ts"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/src/sw.ts').catch(() => {
+          // SW registration failed, app still works without it
+        });
+      });
+    }
+  </script>
+</head>
+<body>
+<main id="config" class="view" role="main">
+  <header>
+    <img class="logo" src="/src/logo.jpg" width="336" height="280" alt="solboot: boot any OS, right in your browser" />
+    <h1 class="sr">solboot</h1>
+    <p class="mute">Disk images never leave your device.</p>
+  </header>
+
+  <div class="row between" style="margin-bottom: 14px;">
+    <h2 style="margin: 0;">Custom VM</h2>
+    <div class="row" style="gap: 8px;">
+      <button type="button" id="importConfig" class="secondary" aria-label="Import VM configuration from file">Import Config</button>
+      <button type="button" id="exportConfig" class="secondary" aria-label="Export VM configuration to file">Export Config</button>
+    </div>
+  </div>
+
+  <section aria-labelledby="custom-vm-heading">
+    <h3 id="custom-vm-heading">Custom VM</h3>
+    <label for="driveName">Drive name
+      <input type="text" id="driveName" maxlength="48" placeholder="My Windows XP VM" aria-describedby="driveNameHelp" />
+    </label>
+    <p id="driveNameHelp" class="mute" style="margin: 4px 0 0; font-size: 11px;">A name for your virtual machine (max 48 characters)</p>
+    <label for="storageSize">Storage size
+      <input type="range" id="storageSize" min="8" max="4096" step="8" value="128" aria-valuemin="8" aria-valuemax="4096" aria-valuenow="128" />
+      <div class="row between">
+        <span id="storageValue" aria-live="polite">128 MB</span>
+        <button type="button" id="createDrive" class="secondary">Create drive</button>
+      </div>
+    </label>
+    <p id="storageStatus" class="mute">Real browser storage is checked before creating the drive image.</p>
+  </section>
+
+  <section aria-labelledby="machine-heading">
+    <h3 id="machine-heading">Machine</h3>
+    <label for="os" data-engine="v86">Guest OS
+      <select id="os" aria-describedby="osHelp">
+        <option value="linux">Linux (any distribution)</option>
+        <option value="windows">Windows 9x / 2000 / XP</option>
+        <option value="other">Other x86 (DOS, BSD, Haiku)</option>
+      </select>
+    </label>
+    <p id="osHelp" class="mute" style="margin: 4px 0 0; font-size: 11px;">Select the guest operating system type for optimal defaults</p>
+    <span id="tags" class="tags" aria-live="polite"></span>
+    <label for="ram" data-engine="v86">Memory <select id="ram" aria-describedby="ramHelp"></select></label>
+    <p id="ramHelp" class="mute" style="margin: 4px 0 0; font-size: 11px;">Amount of RAM allocated to the VM (powers of 2 up to 2 GB)</p>
+    <label for="res">Display frame <select id="res" aria-describedby="resHelp"></select></label>
+    <p id="resHelp" class="mute" style="margin: 4px 0 0; font-size: 11px;">Display resolution for the VM window</p>
+    <label for="perf" data-engine="v86">Performance
+      <select id="perf" aria-describedby="perfHelp">
+        <option value="balanced">Balanced</option>
+        <option value="fast">Fast boot</option>
+        <option value="compat">Compatibility (ACPI off)</option>
+      </select>
+    </label>
+    <p id="perfHelp" class="mute" style="margin: 4px 0 0; font-size: 11px;">Performance mode affects boot speed and hardware compatibility</p>
+  </section>
+
+  <section data-engine="v86" aria-labelledby="disk-heading">
+    <h3 id="disk-heading">Disk</h3>
+    <fieldset class="seg" aria-label="Disk source">
+      <legend class="sr">Disk source</legend>
+      <label><input type="radio" name="src" value="file" checked /> File</label>
+      <label><input type="radio" name="src" value="opfs" /> Browser storage</label>
+      <label><input type="radio" name="src" value="url" /> URL</label>
+    </fieldset>
+    <label for="slot">Attach as
+      <select id="slot" aria-describedby="slotHelp">
+        <option value="hda">Hard drive 1</option>
+        <option value="hdb">Hard drive 2</option>
+        <option value="hdc">Hard drive 3</option>
+        <option value="hdd">Hard drive 4</option>
+        <option value="cdrom">CD-ROM / ISO (boots first)</option>
+      </select>
+    </label>
+    <p id="slotHelp" class="mute" style="margin: 4px 0 0; font-size: 11px;">Select which drive controller to attach the image to</p>
+    <label for="file" data-src="file">Image file <input type="file" id="file" aria-describedby="fileHelp" /></label>
+    <p id="fileHelp" class="mute" style="margin: 4px 0 0; font-size: 11px;">Select a raw disk image file (not qcow2, vmdk, or compressed)</p>
+    <label for="opfsList" data-src="opfs" hidden>Saved image
+      <span class="row"><select id="opfsList" aria-describedby="opfsHelp"></select><button type="button" id="opfsRefresh">Refresh</button></span>
+    </label>
+    <p id="opfsHelp" class="mute" style="margin: 4px 0 0; font-size: 11px;">Select a previously saved disk image from browser storage</p>
+    <label for="url" data-src="url" hidden>Image URL <input type="url" id="url" placeholder="https://example.com/disk.img" aria-describedby="urlHelp" /></label>
+    <p id="urlHelp" class="mute" style="margin: 4px 0 0; font-size: 11px;">Direct link to a raw disk image (server must support CORS and ideally HTTP Range requests)</p>
+    <div class="row between">
+      <label class="inline"><input type="checkbox" id="resume" checked /> Resume saved snapshot if one exists</label>
+      <button type="button" id="clearSnaps">Clear snapshots</button>
+    </div>
+    <p id="archWarn" class="notice" hidden role="alert">This name looks like a 64-bit image. v86 only boots 32-bit guests; use an i386/i686 build.</p>
+  </section>
+
+  <section data-engine="v86" aria-labelledby="wine-heading">
+    <h3 id="wine-heading">Windows program (Wine)</h3>
+    <label for="exe">.exe to run <input type="file" id="exe" accept=".exe,.msi,.bat,.com" aria-describedby="exeHelp" /></label>
+    <p id="exeHelp" class="mute" style="margin: 4px 0 0; font-size: 11px;">Shared into the guest over 9p at /mnt/win. Your Linux image needs i386 Wine and 9p support.</p>
+    <p class="mute">Without one, try <a href="https://www.boxedwine.org/app" target="_blank" rel="noopener">BoxedWine</a> or <a href="https://retrotick.com" target="_blank" rel="noopener">RetroTick</a>.</p>
+  </section>
+
+  <section data-engine="v86" aria-labelledby="network-heading">
+    <h3 id="network-heading">Network</h3>
+    <label for="relay">Relay
+      <select id="relay" aria-describedby="relayHelp">
+        <option value="public">Public relay</option>
+        <option value="custom">Custom WebSocket relay</option>
+        <option value="off">Offline</option>
+      </select>
+    </label>
+    <p id="relayHelp" class="mute" style="margin: 4px 0 0; font-size: 11px;">Network relay for guest internet access</p>
+    <label for="customRelay" id="customRelayWrap" hidden>Relay address <input type="text" id="customRelay" placeholder="wss://relay.example.com/" aria-describedby="customRelayHelp" /></label>
+    <p id="customRelayHelp" class="mute" style="margin: 4px 0 0; font-size: 11px;">Custom WebSocket relay URL (must start with ws:// or wss://)</p>
+  </section>
+
+  <p id="error" class="error" role="alert" hidden aria-live="assertive"></p>
+  <button id="start" class="primary" type="button">Start VM</button>
+</main>
+
+<section id="vm" class="view" hidden role="region" aria-label="Virtual Machine" aria-live="polite">
+  <div class="bar" role="toolbar" aria-label="VM controls">
+    <button id="back" aria-label="Back to configuration">Back</button>
+    <div class="status" aria-live="polite" aria-atomic="true">
+      <i id="dot" class="dot" aria-hidden="true"></i>
+      <b id="statusText">Idle</b>
+    </div>
+    <span id="vmTags" class="tags" aria-live="polite"></span>
+    <span class="spacer"></span>
+    <button id="wineRun" hidden aria-label="Run Windows program in guest">Run .exe</button>
+    <button id="stop" aria-label="Stop the virtual machine">Stop</button>
+    <button id="reset" aria-label="Reset the virtual machine">Reset</button>
+    <button id="snap" aria-label="Save snapshot of VM state">Save snapshot</button>
+    <button id="save" aria-label="Save disk image to browser storage">Save to OPFS</button>
+    <button id="fs" aria-label="Toggle fullscreen mode">Fullscreen</button>
+  </div>
+  <p id="wineHint" class="notice" hidden>Log in at the guest's shell, then press Run .exe. It mounts the share at /mnt/win and starts the program with Wine.</p>
+  <p id="vmNote" class="notice" hidden aria-live="polite"></p>
+  <p id="vmError" class="error" role="alert" hidden aria-live="assertive"></p>
+  <div id="stage" role="application" aria-label="VM display">
+    <div id="screen" tabindex="0" aria-label="VM screen - click to capture keyboard and mouse">
+      <div class="text" aria-hidden="true"></div>
+      <canvas aria-hidden="true"></canvas>
+    </div>
+  </div>
+  <p class="hint">Click the display to capture the keyboard and mouse. Press Ctrl+Alt to release.</p>
+</section>
+</body>
+</html>
